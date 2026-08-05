@@ -11,7 +11,7 @@ const { Sequelize } = require('sequelize');
 // once with:  createdb capstone_dev
 // If you rename it here, run createdb with the new name too — otherwise the
 // server starts up and immediately fails with 'database does not exist'.
-const LOCAL_DATABASE_NAME = 'capstone_dev';
+// const LOCAL_DATABASE_NAME = 'capstone_dev';
 
 const DB_CONNECTION_URL =
   process.env.DATABASE_URL ||

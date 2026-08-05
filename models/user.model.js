@@ -25,6 +25,16 @@ const User = db.define('user', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  // First / last name — filled in on local signup forms. Optional for Auth0
+  // users, since Auth0 typically only gives us a combined `name`.
+  f_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  l_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   // A display name the user picks in OUR app (sent from the frontend).
   username: {
     type: DataTypes.STRING,
