@@ -13,7 +13,7 @@ const cookieParser = require('cookie-parser');
 const { rateLimit } = require('express-rate-limit');
 
 const { db } = require('./models'); // the database connection
-const { taskRouter, authRouter, facDbRouter } = require('./routes'); // our routers
+const { taskRouter, authRouter, facDbRouter, eventRouter } = require('./routes'); // our routers
 const { requireAuth } = require('./middleware/auth'); // accepts our JWT or Auth0's
 
 const app = express();
@@ -91,6 +91,7 @@ app.get('/api/protected', requireAuth, (req, res) => {
 //   app.use('/api/tasks', requireAuth, taskRouter)
 // app.use('/api/tasks', taskRouter);
 app.use('/soda', facDbRouter);
+app.use('/api/events', eventRouter);
 
 // Auth routes: signup/login/logout with our own JWT, plus the Auth0 sync.
 // This router applies the right guard to each route, so we just mount it here.
