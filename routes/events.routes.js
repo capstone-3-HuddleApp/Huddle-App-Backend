@@ -146,15 +146,20 @@ router.patch('/:id', async (req, res, next) => {
 });
 
 
-// DELETE — DELETE /api/tasks/:id
+// DELETE — DELETE /api/events/:id
 router.delete('/:id', async (req, res, next) => {
   try {
-    const task = await Task.findByPk(req.params.id);
-    if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
+    const event = await Event.findByPk(req.params.id);
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
     }
-    await task.destroy();
-    res.sendStatus(204); // 204 = No Content (nothing to send back)
+
+    if (event.creator_id !== req.user.id) {
+      return res.status(403).json({ error: 'Only the creator can delete this event' });
+    }
+
+    await event.destroy();
+    res.status(204).send(); // 204 = No Content — deleted, nothing to return
   } catch (err) {
     next(err);
   }
