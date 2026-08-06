@@ -22,7 +22,7 @@ const router = express.Router();
 
 
 // READ ALL — GET /api/events
-router.get('/', async (req, res, next) => {
+router.get('/', requireAuth, async (req, res, next) => {
   try {
     const { zipcode } = req.query;
 
@@ -39,14 +39,27 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// READ ONE — GET /api/tasks/:id
-router.get('/:id', async (req, res, next) => {
+// READ MY EVENTS — GET /api/events/mine
+router.get('/mine', requireAuth, async (req, res, next) => {
   try {
-    const task = await Task.findByPk(req.params.id); // :id comes in on req.params
-    if (!task) {
-      return res.status(404).json({ error: 'Task not found' }); // always handle "not found"
+    const events = await Event.findAll({
+      where: { creator_id: req.user.id },
+      order: [['createdAt', 'DESC']],
+    });
+    res.json(events);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// READ ONE — GET /api/events/:id
+router.get('/:id', requireAuth, async (req, res, next) => {
+  try {
+    const event = await Event.findByPk(req.params.id); // :id comes in on req.params
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' }); // always handle "not found"
     }
-    res.json(task);
+    res.json(event);
   } catch (err) {
     next(err);
   }
@@ -55,16 +68,22 @@ router.get('/:id', async (req, res, next) => {
 // CREATE — POST /api/events
 router.post('/', requireAuth, async (req, res, next) => {
   try {
-    const { name, description, category } = req.body;
+    const { name, description, category, time, address, zipcode, facilities_id } = req.body;
 
-    if (!name || !category) {
-      return res.status(400).json({ error: 'name and category are required' });
+    if (!name || !category || !time || !address || !zipcode || !facilities_id) {
+      return res.status(400).json({
+        error: 'name, category, time, address, zipcode, and facilities_id are required',
+      });
     }
 
     const event = await Event.create({
       name,
       description,
       category,
+      time,
+      address,
+      zipcode,
+      facilities_id,
       creator_id: req.user.id,
     });
     res.status(201).json(event);
@@ -72,43 +91,60 @@ router.post('/', requireAuth, async (req, res, next) => {
     next(err);
   }
 });
-
-// UPDATE (full) — PUT /api/tasks/:id — client sends EVERY field
+// UPDATE (full) — PUT /api/events/:id — client sends EVERY field
 router.put('/:id', async (req, res, next) => {
   try {
-    const task = await Task.findByPk(req.params.id);
-    if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
+    const event = await Event.findByPk(req.params.id);
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
     }
-    const { title, description, completed } = req.body;
-    await task.update({ title, description, completed });
-    res.json(task);
+
+    if (event.creator_id !== req.user.id) {
+      return res.status(403).json({ error: 'Only the creator can update this event' });
+    }
+
+    const { name, description, category, time, address, zipcode, facilities_id } = req.body;
+
+    if (!name || !category || !time || !address || !zipcode || !facilities_id) {
+      return res.status(400).json({
+        error: 'name, category, time, address, zipcode, and facilities_id are required',
+      });
+    }
+
+    await event.update({ name, description, category, time, address, zipcode, facilities_id });
+    res.json(event);
   } catch (err) {
     next(err);
   }
 });
 
-// UPDATE (partial) — PATCH /api/tasks/:id — change only the fields sent
+// UPDATE (partial) — PATCH /api/events/:id — change only the fields sent
 router.patch('/:id', async (req, res, next) => {
   try {
-    const task = await Task.findByPk(req.params.id);
-    if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
+    const event = await Event.findByPk(req.params.id);
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
     }
-    // Only copy over fields we allow, so nobody can change columns we didn't intend (like id).
-    const allowed = ['title', 'description', 'completed'];
+
+    if (event.creator_id !== req.user.id) {
+      return res.status(403).json({ error: 'Only the creator can update this event' });
+    }
+
+    // Only copy over fields we allow, so nobody can change columns we didn't intend (like id or creator_id).
+    const allowed = ['name', 'description', 'category', 'time', 'address', 'zipcode', 'facilities_id'];
     const updates = {};
     for (const field of allowed) {
       if (field in req.body) {
         updates[field] = req.body[field];
       }
     }
-    await task.update(updates);
-    res.json(task);
+    await event.update(updates);
+    res.json(event);
   } catch (err) {
     next(err);
   }
 });
+
 
 // DELETE — DELETE /api/tasks/:id
 router.delete('/:id', async (req, res, next) => {

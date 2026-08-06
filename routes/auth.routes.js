@@ -93,7 +93,7 @@ const uniqueUsername = async (preferred) => {
 // ---------------------------------------------------------------------------
 router.post('/signup', authLimiter, async (req, res, next) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, f_name, l_name } = req.body;
 
     // Validate on the SERVER even though the React form also validates. The
     // frontend check is a convenience for honest users; anyone can skip it by
@@ -128,7 +128,7 @@ router.post('/signup', authLimiter, async (req, res, next) => {
     // Hash, THEN store. The plain password exists only inside this function and
     // is never written to the database or the logs.
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const user = await User.create({ username, email, passwordHash });
+    const user = await User.create({ username, email, passwordHash, f_name, l_name });
 
     // Signing up logs you in
     // — no need to immediately type the password again.
