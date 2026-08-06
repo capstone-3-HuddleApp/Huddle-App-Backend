@@ -13,11 +13,11 @@ const cookieParser = require('cookie-parser');
 const { rateLimit } = require('express-rate-limit');
 
 const { db } = require('./models'); // the database connection
-const { taskRouter, authRouter } = require('./routes'); // our routers
+const { taskRouter, authRouter, facDbRouter } = require('./routes'); // our routers
 const { requireAuth } = require('./middleware/auth'); // accepts our JWT or Auth0's
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8000;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // Deployed apps sit behind a proxy (Render, ...). This tells Express
@@ -89,7 +89,8 @@ app.get('/api/protected', requireAuth, (req, res) => {
 //   app.use('/api/posts', postRouter)
 // To make tasks private per user, add requireAuth middleware here:
 //   app.use('/api/tasks', requireAuth, taskRouter)
-app.use('/api/tasks', taskRouter);
+// app.use('/api/tasks', taskRouter);
+app.use('/soda', facDbRouter);
 
 // Auth routes: signup/login/logout with our own JWT, plus the Auth0 sync.
 // This router applies the right guard to each route, so we just mount it here.
