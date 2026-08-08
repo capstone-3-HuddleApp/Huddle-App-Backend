@@ -32,5 +32,31 @@ module.exports={
         }catch (error){
             next(error)
         }
+    },
+
+    /**
+   * $$$-Funtion Creation: 08/08/2026, [Md Shamin Ahsan Anaph]
+   * $$$-Most Recent Change: 08/08/2026, [Md Shamin Ahsan Anaph]
+   * $$$-Function Description:
+   *    Gets all events a user is participating in
+   * $$$-Component Using This Function:
+   *    Get /api/events/:userId endpoint uses this function
+   * $$$-Description of Variables:
+   *    userId is the uid from the query params
+   */
+  async getUserAttendEvents(req, res, next) {
+    try {
+      const { userId } = req.params;
+
+      const result = await eventService.getUserAttendEvents(userId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Events retrieved successfully',
+        data: result
+      });
+    } catch (error) {
+      next(error);
     }
+  }
 }
