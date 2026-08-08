@@ -3,8 +3,14 @@ const router = express.Router();
 
 //upon getting hit this endpoint fetches data from the facilities database
 router.post("/", async (req, res, next) => {
+  console.log("hit");
   try {
-    const { optype, facgroup, facsubgrp } = req.body;
+    const { optype, facgroup, facsubgrp, search } = req.body || {};
+
+    //escape characters
+    function escapeSoql(value) {
+      return value.replace(/'/g, "''");
+    }
 
     //converts comma separated values or arrays into arrays
     function toList(param) {
@@ -16,9 +22,15 @@ router.post("/", async (req, res, next) => {
 
     //Builds the Where clause from the request body
     function inClause(field, values) {
-      const quoted = values.map((v) => `'${v}'`).join(", ");
+      const quoted = values.map((v) => `'${escapeSoql(v)}'`).join(", ");
       return `${field} IN (${quoted})`;
     }
+
+    // Builds a free-text search clause matching either the facility name or
+    // the address, case-insensitive, partial match on both sides (%term%).
+    function searchClause(term) {
+      const safeTerm = escapeSoql(term.trim());
+      return `(UPPER(facname) LIKE UPPER('%${safeTerm}%') OR UPPER(address) LIKE UPPER('%${safeTerm}%') OR UPPER(city) LIKE UPPER('%${safeTerm}%'))`;   }
 
     const optypeList = toList(optype);
     const facgroupList = toList(facgroup);
@@ -33,6 +45,13 @@ router.post("/", async (req, res, next) => {
     if (facsubgrpList.length)
       conditions.push(inClause("facsubgrp", facsubgrpList));
 
+    // Guard against near-empty searches — "a" would match a huge, mostly
+    // useless slice of the dataset, and it's cheap to skip before ever
+    // building the clause or hitting the network.
+    if (search && search.trim().length >= 4) {
+      conditions.push(searchClause(search));
+    }
+
     //Check if conditions, then add string
     const SELECT_FIELDS =
       "uid, facname, address, city, boro, zipcode, latitude, longitude, xcoord, ycoord, facgroup, facsubgrp, factype, capacity, optype, opname, overagency, facdomain, geometry";
@@ -41,6 +60,8 @@ router.post("/", async (req, res, next) => {
       : "";
     const query = `SELECT ${SELECT_FIELDS}${whereClause}`;
     console.log(query);
+
+    const pageSize = search ? 10 : 2000;
     const response = await fetch(
       "https://data.cityofnewyork.us/api/v3/views/ji82-xba5/query.json",
       {
@@ -54,7 +75,7 @@ router.post("/", async (req, res, next) => {
           query, //our defined query with filter
           page: {
             pageNumber: 1,
-            pageSize: 500,
+            pageSize: pageSize,
           },
           includeSynthetic: false,
         }),

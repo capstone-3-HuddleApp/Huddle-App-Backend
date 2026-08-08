@@ -90,7 +90,7 @@ app.get('/api/protected', requireAuth, (req, res) => {
 // To make tasks private per user, add requireAuth middleware here:
 //   app.use('/api/tasks', requireAuth, taskRouter)
 // app.use('/api/tasks', taskRouter);
-app.use('/soda', facDbRouter);
+app.use('/api/facilities', facDbRouter);
 app.use('/api/events', eventRouter);
 
 // Auth routes: signup/login/logout with our own JWT, plus the Auth0 sync.
