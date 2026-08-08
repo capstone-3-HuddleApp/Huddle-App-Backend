@@ -13,7 +13,7 @@ const cookieParser = require('cookie-parser');
 const { rateLimit } = require('express-rate-limit');
 
 const { db } = require('./models'); // the database connection
-const { taskRouter, authRouter, facDbRouter, eventRouter } = require('./routes'); // our routers
+const { taskRouter, authRouter, facDbRouter, eventRouter, userRouter } = require('./routes'); // our routers
 const { requireAuth } = require('./middleware/auth'); // accepts our JWT or Auth0's
 
 const app = express();
@@ -90,6 +90,7 @@ app.get('/api/protected', requireAuth, (req, res) => {
 // To make tasks private per user, add requireAuth middleware here:
 //   app.use('/api/tasks', requireAuth, taskRouter)
 // app.use('/api/tasks', taskRouter);
+app.use('/api/users', userRouter);
 app.use('/api/facilities', facDbRouter);
 app.use('/api/events', eventRouter);
 

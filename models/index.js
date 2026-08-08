@@ -25,4 +25,6 @@ Event.belongsToMany(User, {
   as: 'participants'
 })
 
+
+
 module.exports = { db, User, Event, EventParticipants };
