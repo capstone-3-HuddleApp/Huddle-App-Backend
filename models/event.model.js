@@ -12,7 +12,7 @@ const Event = db.define(
       type: DataTypes.STRING,
     },
     category: {
-      type: DataTypes.ENUM('sports', 'arts', 'education', 'entertainment', 'recreation'),
+      type: DataTypes.ENUM('sports', 'arts', 'education', 'entertainment'),
       allowNull: false,
     },
     time: {
