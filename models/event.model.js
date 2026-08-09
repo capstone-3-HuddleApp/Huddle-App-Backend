@@ -9,7 +9,7 @@ const Event = db.define(
       allowNull: false,
     },
     description: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
     },
     category: {
       type: DataTypes.ENUM('sports', 'arts', 'education', 'entertainment'),
@@ -18,6 +18,17 @@ const Event = db.define(
     time: {
       type: DataTypes.DATE,
       allowNull: false,
+    },
+    location: {
+      type: DataTypes.STRING,  // City, neighborhood, or venue name
+      allowNull: false,
+    },
+    maxParticipants: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      validate: {
+        min: 1,  // At least 1 participant
+      },
     },
     address: {
       type: DataTypes.STRING,

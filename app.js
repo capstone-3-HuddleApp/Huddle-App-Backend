@@ -140,7 +140,7 @@ const startServer = async () => {
     // and auth0Id on EVERY boot, so with nodemon restarting all day you quietly
     // pile up users_username_key1, key2, key3... until Postgres refuses more.
     // And never `sync({ force: true })` in app.js — it DROPS your tables.
-    await db.sync();
+    await db.sync({force:true});
     console.log('🧩 Models synced.');
 
     const server = app.listen(PORT, () => {

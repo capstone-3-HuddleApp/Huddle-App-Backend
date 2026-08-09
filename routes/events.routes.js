@@ -55,7 +55,11 @@ router.get('/mine', requireAuth, async (req, res, next) => {
 // READ ONE — GET /api/events/:id
 router.get('/:id', requireAuth, async (req, res, next) => {
   try {
-    const event = await Event.findByPk(req.params.id); // :id comes in on req.params
+    const event = await Event.findByPk(req.params.id, {
+      include:{
+        association: "participants"
+      }
+    }); // :id comes in on req.params and include the users participating
     if (!event) {
       return res.status(404).json({ error: 'Event not found' }); // always handle "not found"
     }
@@ -68,11 +72,12 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 // CREATE — POST /api/events
 router.post('/', requireAuth, async (req, res, next) => {
   try {
-    const { name, description, category, time, address, zipcode, facilities_id } = req.body;
+    const { name, description, category, time, address, zipcode, location, maxParticipants, facilities_id } = req.body;
 
-    if (!name || !category || !time || !address || !zipcode || !facilities_id) {
+    //maxParticipants is optional
+    if (!name || !category || !time || !address || !zipcode || !location || !facilities_id) {
       return res.status(400).json({
-        error: 'name, category, time, address, zipcode, and facilities_id are required',
+        error: 'name, category, time, address, zipcode, location, and facilities_id are required',
       });
     }
 
@@ -83,6 +88,8 @@ router.post('/', requireAuth, async (req, res, next) => {
       time,
       address,
       zipcode,
+      location,
+      maxParticipants: maxParticipants || null,  // Optional, defaults to null
       facilities_id,
       creator_id: req.user.id,
     });
