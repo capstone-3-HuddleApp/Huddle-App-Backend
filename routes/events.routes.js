@@ -1,3 +1,4 @@
+
 /**
  *   Create  ->  POST    /api/events
  *   Read    ->  GET     /api/events   (all)
@@ -13,163 +14,39 @@ const {requireAuth} = require('../middleware/auth')
 
 const express = require('express');
 const { Event } = require('../models');
+const {
+  getAllEvents,
+  getMyEvents,
+  getEventById,
+  createEvent,
+  updateEvent,
+  partialUpdateEvent,
+  deleteEvent,
+} = require('../controllers/event.controller');
 
 const router = express.Router();
 
-// Every handler is async because DB calls take time (we await them).
-// If a call fails, catch hands the error to next(err) -> the error handler in
-// app.js. That stops one bad request from crashing the whole server.
-
 
 // READ ALL — GET /api/events
-router.get('/', requireAuth, async (req, res, next) => {
-  try {
-    const { zipcode } = req.query;
-
-    const where = {};
-    if (zipcode) where.zipcode = zipcode;
-
-    const events = await Event.findAll({
-      where,
-      order: [['createdAt', 'DESC']], // newest first
-    });
-    res.json(events);
-  } catch (err) {
-    next(err);
-  }
-});
-
+router.get('/', requireAuth, getAllEvents);
+ 
 // READ MY EVENTS — GET /api/events/mine
-router.get('/mine', requireAuth, async (req, res, next) => {
-  try {
-    const events = await Event.findAll({
-      where: { creator_id: req.user.id },
-      order: [['createdAt', 'DESC']],
-    });
-    res.json(events);
-  } catch (err) {
-    next(err);
-  }
-});
-
+router.get('/mine', requireAuth, getMyEvents);
+ 
 // READ ONE — GET /api/events/:id
-router.get('/:id', requireAuth, async (req, res, next) => {
-  try {
-    const event = await Event.findByPk(req.params.id, {
-      include:{
-        association: "participants"
-      }
-    }); // :id comes in on req.params and include the users participating
-    if (!event) {
-      return res.status(404).json({ error: 'Event not found' }); // always handle "not found"
-    }
-    res.json(event);
-  } catch (err) {
-    next(err);
-  }
-});
-
+router.get('/:id', requireAuth, getEventById);
+ 
 // CREATE — POST /api/events
-router.post('/', requireAuth, async (req, res, next) => {
-  try {
-    const { name, description, category, time, address, zipcode, location, maxParticipants, facilities_id } = req.body;
-
-    //maxParticipants is optional
-    if (!name || !category || !time || !address || !zipcode || !location || !facilities_id) {
-      return res.status(400).json({
-        error: 'name, category, time, address, zipcode, location, and facilities_id are required',
-      });
-    }
-
-    const event = await Event.create({
-      name,
-      description,
-      category,
-      time,
-      address,
-      zipcode,
-      location,
-      maxParticipants: maxParticipants || null,  // Optional, defaults to null
-      facilities_id,
-      creator_id: req.user.id,
-    });
-    res.status(201).json(event);
-  } catch (err) {
-    next(err);
-  }
-});
+router.post('/', requireAuth, createEvent);
+ 
 // UPDATE (full) — PUT /api/events/:id — client sends EVERY field
-router.put('/:id', async (req, res, next) => {
-  try {
-    const event = await Event.findByPk(req.params.id);
-    if (!event) {
-      return res.status(404).json({ error: 'Event not found' });
-    }
-
-    if (event.creator_id !== req.user.id) {
-      return res.status(403).json({ error: 'Only the creator can update this event' });
-    }
-
-    const { name, description, category, time, address, zipcode, facilities_id } = req.body;
-
-    if (!name || !category || !time || !address || !zipcode || !facilities_id) {
-      return res.status(400).json({
-        error: 'name, category, time, address, zipcode, and facilities_id are required',
-      });
-    }
-
-    await event.update({ name, description, category, time, address, zipcode, facilities_id });
-    res.json(event);
-  } catch (err) {
-    next(err);
-  }
-});
-
+router.put('/:id', requireAuth, updateEvent);
+ 
 // UPDATE (partial) — PATCH /api/events/:id — change only the fields sent
-router.patch('/:id', async (req, res, next) => {
-  try {
-    const event = await Event.findByPk(req.params.id);
-    if (!event) {
-      return res.status(404).json({ error: 'Event not found' });
-    }
-
-    if (event.creator_id !== req.user.id) {
-      return res.status(403).json({ error: 'Only the creator can update this event' });
-    }
-
-    // Only copy over fields we allow, so nobody can change columns we didn't intend (like id or creator_id).
-    const allowed = ['name', 'description', 'category', 'time', 'address', 'zipcode', 'facilities_id'];
-    const updates = {};
-    for (const field of allowed) {
-      if (field in req.body) {
-        updates[field] = req.body[field];
-      }
-    }
-    await event.update(updates);
-    res.json(event);
-  } catch (err) {
-    next(err);
-  }
-});
-
-
+router.patch('/:id', requireAuth, partialUpdateEvent);
+ 
 // DELETE — DELETE /api/events/:id
-router.delete('/:id', async (req, res, next) => {
-  try {
-    const event = await Event.findByPk(req.params.id);
-    if (!event) {
-      return res.status(404).json({ error: 'Event not found' });
-    }
-
-    if (event.creator_id !== req.user.id) {
-      return res.status(403).json({ error: 'Only the creator can delete this event' });
-    }
-
-    await event.destroy();
-    res.status(204).send(); // 204 = No Content — deleted, nothing to return
-  } catch (err) {
-    next(err);
-  }
-});
-
+router.delete('/:id', requireAuth, deleteEvent);
+ 
 module.exports = router;
+ 
