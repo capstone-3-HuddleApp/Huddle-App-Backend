@@ -10,7 +10,7 @@ module.exports = {
   async getAllEvents(req, res, next) {
     try {
       const { zipcode } = req.query;
-      const events = await getAllEventsService(zipcode);
+      const events = await eventService.getAllEventsService(zipcode);
       res.json(events);
     } catch (err) {
       next(err);
@@ -20,17 +20,26 @@ module.exports = {
   // READ MY EVENTS — GET /api/events/mine
   async getMyEvents(req, res, next) {
     try {
-      const events = await getMyEventsService(req.user.id);
+      const events = await eventService.getMyEventsService(req.user.id);
       res.json(events);
     } catch (err) {
       next(err);
     }
   },
 
+  async getEventsParticipating(req,res, nexr){
+    try{
+      const events = await eventService.getEventsParticipatingService(req.user.id);
+      res.json(events)
+    } catch(err){
+      next(err)
+    }
+  },
+
   // READ ONE — GET /api/events/:id
   async getEventById(req, res, next) {
     try {
-      const event = await getEventByIdService(req.params.id);
+      const event = await eventService.getEventByIdService(req.params.id);
       // always handle "not found"
       if (!event) {
         return res.status(404).json({ error: "Event not found" });
@@ -72,7 +81,7 @@ module.exports = {
         });
       }
 
-      const event = await createEventService(
+      const event = await eventService.createEventService(
         {
           name,
           description,
@@ -119,7 +128,7 @@ module.exports = {
         });
       }
 
-      const event = await updateEventService(req.params.id, req.user.id, {
+      const event = await eventService.updateEventService(req.params.id, req.user.id, {
         name,
         description,
         category,
@@ -147,7 +156,7 @@ module.exports = {
   // UPDATE (partial) — PATCH /api/events/:id — change only the fields sent
   async partialUpdateEvent(req, res, next) {
     try {
-      const event = await partialUpdateEventService(
+      const event = await eventService.partialUpdateEventService(
         req.params.id,
         req.user.id,
         req.body,
@@ -171,7 +180,7 @@ module.exports = {
   // DELETE — DELETE /api/events/:id
   async deleteEvent(req, res, next) {
     try {
-      const success = await deleteEventService(req.params.id, req.user.id);
+      const success = await eventService.deleteEventService(req.params.id, req.user.id);
 
       if (!success) {
         return res.status(404).json({ error: "Event not found" });

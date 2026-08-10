@@ -23,6 +23,20 @@ module.exports = {
     return events;
   },
 
+  //READ EVENTS PARTICIPATING -  Get all the events a user is participating in
+  async getEventsParticipatingService(userId){
+    const events = await Event.findAll({
+      include: {
+        association: 'participants',
+        where: {id: userId},
+        attributes: [],
+        through: {attributes: []}
+      },
+      order: [['createdAt', 'DESC']]
+    });
+    return events;
+  },
+
   // READ ONE EVENT — Get event by ID, include the users participating
   async getEventByIdService(eventId) {
     const event = await Event.findByPk(eventId, {

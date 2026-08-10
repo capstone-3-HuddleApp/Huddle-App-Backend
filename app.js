@@ -6,20 +6,24 @@
 require('dotenv').config();
 const path = require('path');
 const express = require('express');
+const http = require('http')
 const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const { rateLimit } = require('express-rate-limit');
+const initSocket = require('./sockets/socket.server')
 
 const { db } = require('./models'); // the database connection
 const { taskRouter, authRouter, facDbRouter, eventRouter, userRouter } = require('./routes'); // our routers
 const { requireAuth } = require('./middleware/auth'); // accepts our JWT or Auth0's
 
 const app = express();
+const server = http.createServer(app)
 const PORT = process.env.PORT || 8000;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
+const io = initSocket(server);
 // Deployed apps sit behind a proxy (Render, ...). This tells Express
 // to trust it, so rate-limiting sees the real visitor IP and secure cookies work.
 app.set('trust proxy', 1);
@@ -143,7 +147,7 @@ const startServer = async () => {
     await db.sync();
     console.log('🧩 Models synced.');
 
-    const server = app.listen(PORT, () => {
+    const Server = server.listen(PORT, () => {
       console.log(`🚀 Server is running on PORT: ${PORT}`);
     });
 
@@ -151,7 +155,7 @@ const startServer = async () => {
     // requests, then close the DB connection so nothing is left hanging.
     const shutdown = () => {
       console.log('\n👋 Shutting down...');
-      server.close(async () => {
+      Server.close(async () => {
         await db.close();
         process.exit(0);
       });

@@ -17,6 +17,7 @@ const { Event } = require('../models');
 const {
   getAllEvents,
   getMyEvents,
+  getEventsParticipating,
   getEventById,
   createEvent,
   updateEvent,
@@ -33,6 +34,9 @@ router.get('/', requireAuth, getAllEvents);
 // READ MY EVENTS — GET /api/events/mine
 router.get('/mine', requireAuth, getMyEvents);
  
+//READ EVENTS PARTICIPATING - Get /api/events/participating
+router.get('/participating', requireAuth, getEventsParticipating);
+
 // READ ONE — GET /api/events/:id
 router.get('/:id', requireAuth, getEventById);
  
