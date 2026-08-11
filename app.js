@@ -15,7 +15,7 @@ const { rateLimit } = require('express-rate-limit');
 const initSocket = require('./sockets/socket.server')
 
 const { db } = require('./models'); // the database connection
-const { taskRouter, authRouter, facDbRouter, eventRouter, userRouter } = require('./routes'); // our routers
+const { taskRouter, authRouter, facDbRouter, eventRouter, userRouter, msgRouter } = require('./routes'); // our routers
 const { requireAuth } = require('./middleware/auth'); // accepts our JWT or Auth0's
 
 const app = express();
@@ -97,6 +97,7 @@ app.get('/api/protected', requireAuth, (req, res) => {
 app.use('/api/users', userRouter);
 app.use('/api/facilities', facDbRouter);
 app.use('/api/events', eventRouter);
+app.use('/api/messages',msgRouter );
 
 // Auth routes: signup/login/logout with our own JWT, plus the Auth0 sync.
 // This router applies the right guard to each route, so we just mount it here.

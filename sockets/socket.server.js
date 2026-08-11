@@ -14,15 +14,23 @@ module.exports = (server) => {
     console.log(`User conncted: ${socket.id}`);
 
     socket.on("join_event", (eventId) => {
+      console.log(eventId)
       socket.join(`event_${eventId}`);
     });
 
     socket.on("send_event_message", (data) => {
-      io.to(`event_${data.eventId}`).emit("receive_event_message", {
-        userId: data.userId,
-        message: data.message,
+
+      //debugging
+      console.log("Recieved send_event_message:", data)
+      console.log("Emmiting to room", `event_${data.event_id}`)
+
+      io.to(`event_${data.event_id}`).emit("receive_event_message", {
+        userId: data.user_id,
+        message: data.content,
         timestamp: new Date(),
       });
+
+      console.log("Emitted to room")
     });
 
     socket.on("disconnect", () => {
