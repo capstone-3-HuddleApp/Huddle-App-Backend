@@ -2,6 +2,126 @@ const { Op } = require("sequelize");
 const { User, Event, EventParticipants } = require("../models");
 
 module.exports = {
+  // READ ALL EVENTS — Get all events, optionally filtered by zipcode
+  async getAllEventsService(zipcode) {
+    const where = {};
+    if (zipcode) where.zipcode = zipcode;
+
+    const events = await Event.findAll({
+      where,
+      order: [["createdAt", "DESC"]], // newest first
+    });
+    return events;
+  },
+
+  // READ MY EVENTS — Get all events created by a specific user
+  async getMyEventsService(userId) {
+    const events = await Event.findAll({
+      where: { creator_id: userId },
+      order: [["createdAt", "DESC"]],
+    });
+    return events;
+  },
+
+  //READ EVENTS PARTICIPATING -  Get all the events a user is participating in
+  async getEventsParticipatingService(userId){
+    const events = await Event.findAll({
+      include: {
+        association: 'participants',
+        where: {id: userId},
+        attributes: [],
+        through: {attributes: []}
+      },
+      order: [['createdAt', 'DESC']]
+    });
+    return events;
+  },
+
+  // READ ONE EVENT — Get event by ID, include the users participating
+  async getEventByIdService(eventId) {
+    const event = await Event.findByPk(eventId, {
+      include: {
+        association: "participants",
+      },
+    });
+    return event;
+  },
+
+  // CREATE EVENT
+  async createEventService(eventData, creatorId) {
+    const event = await Event.create({
+      ...eventData,
+      creator_id: creatorId,
+    });
+    return event;
+  },
+
+  // UPDATE EVENT (full) — client sends EVERY field
+  async updateEventService(eventId, userId, updates) {
+    const event = await Event.findByPk(eventId);
+
+    if (!event) {
+      return null;
+    }
+
+    if (event.creator_id !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    await event.update(updates);
+    return event;
+  },
+
+  // UPDATE EVENT (partial) — change only the fields sent
+  // Only copy over fields we allow, so nobody can change columns we didn't intend (like id or creator_id).
+  async partialUpdateEventService(eventId, userId, requestBody) {
+    const event = await Event.findByPk(eventId);
+
+    if (!event) {
+      return null;
+    }
+
+    if (event.creator_id !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const allowed = [
+      "name",
+      "description",
+      "category",
+      "time",
+      "address",
+      "zipcode",
+      "facilities_id",
+    ];
+    const updates = {};
+
+    for (const field of allowed) {
+      if (field in requestBody) {
+        updates[field] = requestBody[field];
+      }
+    }
+
+    await event.update(updates);
+    return event;
+  },
+
+  // DELETE EVENT
+  async deleteEventService(eventId, userId) {
+    const event = await Event.findByPk(eventId);
+
+    if (!event) {
+      return false;
+    }
+
+    if (event.creator_id !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    await event.destroy();
+    return true;
+  },
+
   /**
    * $$$-Funtion Creation: 08/08/2026, [Md Shamin Ahsan Anaph]
    * $$$-Most Recent Change: 08/08/2026, [Md Shamin Ahsan Anaph]
