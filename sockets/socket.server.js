@@ -25,6 +25,7 @@ module.exports = (server) => {
       console.log("Emmiting to room", `event_${data.event_id}`)
 
       io.to(`event_${data.event_id}`).emit("receive_event_message", {
+        sender: data.sender,
         user_id: data.user_id,
         message: data.content,
         createdAt: data.createdAt,
