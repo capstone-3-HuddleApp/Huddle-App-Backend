@@ -6,6 +6,7 @@ const User = require('./user.model');
 const Event = require('./event.model');
 const EventParticipants = require('./eventParticipants.model');
 const Message = require('./message.model');
+const UserFollows = require('./userFollows.model');
 // ---------- associations ----------
 
 // Ownership
@@ -47,5 +48,19 @@ Event.hasMany(Message, {
   as: 'messages',
 })
 
+// Allows users to follow other users
+User.belongsToMany(User, {
+  through: UserFollows,
+  as: "following",
+  foreignKey: "follower_id",
+  otherKey: "following_id",
+});
 
-module.exports = { db, User, Event, EventParticipants, Message };
+User.belongsToMany(User, {
+  through: UserFollows,
+  as: "followers",
+  foreignKey: "following_id",
+  otherKey: "follower_id",
+});
+
+module.exports = { db, User, Event, EventParticipants, UserFollows, Message };
