@@ -1,5 +1,4 @@
-const { Op } = require("sequelize");
-const { User, UserFollows } = require("../models");
+const userService = require("../services/user.service")
 
 //Updates editable fields for the authenticated user's own profile.
 async function updateMyProfile(req, res, next) {
@@ -19,23 +18,24 @@ async function updateMyProfile(req, res, next) {
             });
         }
 
-        const usernameOwner = await User.findOne({
-            where:{
-                username,
-                id: { [Op.ne]: req.user.id },
-            },
-        });
+        const updatedUser = await userService.updateMyProfileService(
+            req.user.id,
+            name,
+            username,
+        );
 
-        if (usernameOwner) {
+        return res.json(updatedUser);
+    }   catch(error) {
+        if (error.message === "Username already taken"){
             return res.status(409).json({
                 error: "That username is already taken",
             });
         }
-
-        await req.user.update({ name, username });
-
-        return res.json(req.user);
-    }   catch(error) {
+        if (error.message === "User not found") {
+            return res.status(404).json({
+                error: "User not found",
+            });
+        }
         next(error);
     }
 }
@@ -52,28 +52,19 @@ async function followUser(req, res, next) {
             });
         }
 
-        // Make sure the user being followed exists
-        const userToFollow = await User.findByPk(followingId);
+       const result = await userService.followUserService(
+        followerId,
+        followingId,
+       );
 
-        if (!userToFollow) {
+       return res.json(result);
+    } catch (error) {
+        if (error.message === "User not found") {
             return res.status(404).json({
-                error: "User not found",
+                error: "User not found"
             });
         }
 
-        // Create the relationship only if it does not already exist
-        await UserFollows.findOrCreate({
-            where: {
-                follower_id: followerId,
-                following_id: followingId,
-            },
-        });
-
-        return res.json({
-            message: "User followed successfully",
-            following: true,
-        });
-    } catch (error) {
         next(error);
     }
 }
@@ -84,17 +75,11 @@ async function unfollowUser(req, res, next) {
         const followerId = req.user.id;
         const followingId = req.params.userId;
 
-        await UserFollows.destroy({
-            where: {
-                follower_id: followerId,
-                following_id: followingId,
-            },
-        });
-
-        return res.json({
-            message: "User unfollowed successfully",
-            following: false,
-        });
+        const result = await userService.unfollowUserService(
+            followerId,
+            followingId,
+        );
+        return res.json(result);
     } catch (error) {
         next(error);
     }
@@ -102,28 +87,16 @@ async function unfollowUser(req, res, next) {
 
 async function getMyFollows(req, res, next) {
     try {
-        const currentUser = await User.findByPk(req.user.id, {
-            include: [
-                {
-                    association: "followers",
-                    attributes: ["id", "name", "username"],
-                    through: {attributes: [] },
-                },
-                {
-                    association: "following",
-                    attributes: ["id", "name", "username"],
-                    through: {attributes: []},
-                },
-            ],
-        });
+        const result = await userService.getMyFollowsService(req.user.id);
 
-        return res.json({
-            followers: currentUser.followers,
-            following: currentUser.following,
-            followerCount: currentUser.followers.length,
-            followingCount: currentUser.following.length,
-        });
+        return res.json(result);
     } catch (error) {
+        if (error.message === "User not found"){
+            return res.status(404).json({
+                error: "User not found",
+            });
+        }
+
         next(error);
     }
 }
