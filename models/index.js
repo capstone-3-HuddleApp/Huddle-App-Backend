@@ -7,6 +7,7 @@ const Event = require('./event.model');
 const EventParticipants = require('./eventParticipants.model');
 const Message = require('./message.model');
 const UserFollows = require('./userFollows.model');
+const Image = require('./image.model');
 // ---------- associations ----------
 
 // Ownership
@@ -63,4 +64,30 @@ User.belongsToMany(User, {
   otherKey: "follower_id",
 });
 
-module.exports = { db, User, Event, EventParticipants, UserFollows, Message };
+// Image ref associations
+
+// Image belongs to User
+Image.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user'
+});
+
+// User has many Images
+User.hasMany(Image, {
+    foreignKey: 'user_id',
+    as: 'images'
+});
+
+// Image belongs to Event
+Image.belongsTo(Event, {
+    foreignKey: 'event_id',
+    as: 'event'
+});
+
+// Event has many Images
+Event.hasMany(Image, {
+    foreignKey: 'event_id',
+    as: 'images'
+});
+
+module.exports = { db, User, Event, EventParticipants, UserFollows, Message, Image };
