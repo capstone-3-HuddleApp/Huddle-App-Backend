@@ -1,6 +1,6 @@
-import express from 'express';
-import { uploadController } from '../controllers/uploadController.js';
-import multer from 'multer';
+const express = require( 'express');
+const uploadController = require('../controllers/image.controller')
+const multer = require('multer')
 
 const router = express.Router();
 
@@ -11,9 +11,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.post('/upload', upload.single('file'), uploadController.uploadImage);
 
 // DELETE - Delete image
-router.delete('/upload', uploadController.deleteImage);
+router.delete('/delete', uploadController.deleteImage);
 
 // GET - Get transformed URL
-router.get('/upload/transform', uploadController.getTransformedUrl);
+router.get('/transform', uploadController.getTransformedUrl);
 
-export default router;
+module.exports = router

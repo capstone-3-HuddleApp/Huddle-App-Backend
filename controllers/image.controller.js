@@ -1,6 +1,6 @@
 const imageService = require('../services/image.service')
 
-export const uploadController = {
+module.exports = {
     async uploadImage(req, res) {
         try {
             const {publicId} = req.body;

@@ -15,7 +15,7 @@ const { rateLimit } = require('express-rate-limit');
 const initSocket = require('./sockets/socket.server')
 
 const { db } = require('./models'); // the database connection
-const { taskRouter, authRouter, facDbRouter, eventRouter, userRouter, msgRouter } = require('./routes'); // our routers
+const { taskRouter, authRouter, facDbRouter, eventRouter, userRouter, msgRouter, imgRouter } = require('./routes'); // our routers
 const { requireAuth } = require('./middleware/auth'); // accepts our JWT or Auth0's
 
 const app = express();
@@ -98,7 +98,7 @@ app.use('/api/users', userRouter);
 app.use('/api/facilities', facDbRouter);
 app.use('/api/events', eventRouter);
 app.use('/api/messages',msgRouter );
-
+app.use('/api/image', imgRouter);
 // Auth routes: signup/login/logout with our own JWT, plus the Auth0 sync.
 // This router applies the right guard to each route, so we just mount it here.
 app.use('/auth', authRouter);
@@ -145,7 +145,7 @@ const startServer = async () => {
     // and auth0Id on EVERY boot, so with nodemon restarting all day you quietly
     // pile up users_username_key1, key2, key3... until Postgres refuses more.
     // And never `sync({ force: true })` in app.js — it DROPS your tables.
-    await db.sync();
+    await db.sync({force: false});
     console.log('🧩 Models synced.');
 
     const Server = server.listen(PORT, () => {
