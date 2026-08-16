@@ -16,4 +16,7 @@ router.delete('/delete', uploadController.deleteImage);
 // GET - Get transformed URL
 router.get('/transform', uploadController.getTransformedUrl);
 
+// GET - Get Event image url
+router.get('/event/:id', uploadController.getEventImage);
+
 module.exports = router

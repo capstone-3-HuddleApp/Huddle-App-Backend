@@ -3,11 +3,11 @@ const imageService = require('../services/image.service')
 module.exports = {
     async uploadImage(req, res) {
         try {
-            const {publicId} = req.body;
-
+            const {publicId, userId, eventId} = req.body;
+            console.log(publicId, eventId)
             // Cloudinary SDK can accept file path, URL, or buffer
             // Assuming middleware passed file info to req.file
-            const result = await imageService.uploadImage(req.file.buffer, publicId);
+            const result = await imageService.uploadImage(req.file.buffer, publicId, userId, eventId);
             
             res.status(200).json({
                 success: true,
@@ -67,6 +67,23 @@ module.exports = {
                 success: false,
                 error: error.message
             });
+        }
+    },
+
+    async getEventImage(req, res){
+        try{
+            const eventId = req.params.id;
+            const image = await imageService.getEventImages(eventId)
+
+            res.status(200).json({
+                success: true,
+                data: image
+            });
+        }catch(error){
+            res.status(500).json({
+                success: false,
+                error: error.message
+            })
         }
     }
 };
