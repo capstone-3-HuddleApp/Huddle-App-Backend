@@ -21,7 +21,7 @@ module.exports = {
       url: result.secure_url,
       type: eventId ? 'event' : 'profile',
       user_id: userId,
-      event_id: parseInt(eventId)
+      event_id: eventId? parseInt(eventId) : null
     });
     console.log(imageData)
     return imageData;
@@ -41,6 +41,15 @@ module.exports = {
         where: {event_id: eventId}
     });
     console.log(images)
+    return images;
+  },
+
+  async getProfileImages(userId){
+    const images = await Image.findAll({
+        where: {user_id: userId,
+            type: "profile"
+        }
+    });
     return images;
   }
 };

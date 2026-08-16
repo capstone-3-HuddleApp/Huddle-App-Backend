@@ -85,5 +85,23 @@ module.exports = {
                 error: error.message
             })
         }
-    }
-};
+    },
+
+    async getProfileImage(req, res){
+       try{
+            const userId = req.params.id;
+            console.log(userId)
+            const image = await imageService.getProfileImages(userId)
+
+            res.status(200).json({
+                success: true,
+                data: image
+            });
+        }catch(error){
+            res.status(500).json({
+                success: false,
+                error: error.message
+            })
+        }
+}
+}

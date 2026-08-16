@@ -19,4 +19,7 @@ router.get('/transform', uploadController.getTransformedUrl);
 // GET - Get Event image url
 router.get('/event/:id', uploadController.getEventImage);
 
+//GET - Get Profile image url
+router.get('/profile/:id', uploadController.getProfileImage);
+
 module.exports = router
