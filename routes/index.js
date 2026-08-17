@@ -6,9 +6,11 @@ const facDbRouter = require('./facilities.routes')
 const eventRouter = require('./events.routes');
 const authRouter = require('./auth.routes');
 const msgRouter = require('./message.routes');
+const imgRouter = require('./image.routes')
 
 // Add a new resource? Import its router above and add one line here.
 module.exports = {
+  imgRouter,
   msgRouter,
   userRouter,
   facDbRouter,
