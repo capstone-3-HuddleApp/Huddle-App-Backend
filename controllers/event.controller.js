@@ -27,6 +27,16 @@ module.exports = {
     }
   },
 
+  //READ Guest EVENTS — GET /api/events/guest/:userId
+  async getGuestEvents(req, res, next){
+    try {
+      const events = await eventService.getMyEventsService(req.params.userId);
+      res.json(events);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async getEventsParticipating(req,res, nexr){
     try{
       const events = await eventService.getEventsParticipatingService(req.user.id);

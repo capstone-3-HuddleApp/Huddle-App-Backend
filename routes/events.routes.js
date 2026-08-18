@@ -23,6 +23,7 @@ const {
   updateEvent,
   partialUpdateEvent,
   deleteEvent,
+  getGuestEvents,
 } = require('../controllers/event.controller');
 
 const router = express.Router();
@@ -33,6 +34,8 @@ router.get('/', requireAuth, getAllEvents);
  
 // READ MY EVENTS — GET /api/events/mine
 router.get('/mine', requireAuth, getMyEvents);
+
+router.get('/guest/:userId', requireAuth, getGuestEvents)
  
 //READ EVENTS PARTICIPATING - Get /api/events/participating
 router.get('/participating', requireAuth, getEventsParticipating);
