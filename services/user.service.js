@@ -80,11 +80,23 @@ module.exports = {
         }
 
         return {
+            user: currentUser,
             followers: currentUser.followers,
             following: currentUser.following,
             followerCount: currentUser.followers.length,
             followingCount: currentUser.following.length,
         };
     },
+
+    async whoAmI(id){
+        const user = await User.findByPk(id)
+        if(!user){
+            throw new Error("user not found");
+        }
+
+        return{
+            username: user.username
+        };
+    }
 
 };

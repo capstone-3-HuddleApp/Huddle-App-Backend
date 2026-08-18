@@ -8,7 +8,10 @@ const { requireAuth } = require("../middleware/auth")
 router.patch("/me", requireAuth, userController.updateMyProfile);
 
 //Returns the logged-in users follower and following lists
-router.get("/me/follows", requireAuth, userController.getMyFollows);
+router.get("/me/follows/:id", requireAuth, userController.getMyFollows);
+
+//Returns the user search by id
+router.get('/whoAmI/:id', requireAuth, userController.whoAmI)
 
 //Creates a one-way follow relationship with another user
 router.post("/:userId/follow", requireAuth, userController.followUser);

@@ -40,6 +40,25 @@ async function updateMyProfile(req, res, next) {
     }
 }
 
+async function whoAmI(req, res, next) {
+    console.log(req.params.id)
+    try{
+        const id = req.params.id;
+
+        const user = await userService.whoAmI(id);
+        console.log(user)
+        return res.json(user)
+
+    }catch(error){
+        if (error.message === "User not found") {
+            return res.status(404).json({
+                error: "User not found"
+            });
+        }
+        next(error)
+    }
+}
+
 async function followUser(req, res, next) {
     try{
         const followerId = req.user.id;
@@ -87,7 +106,7 @@ async function unfollowUser(req, res, next) {
 
 async function getMyFollows(req, res, next) {
     try {
-        const result = await userService.getMyFollowsService(req.user.id);
+        const result = await userService.getMyFollowsService(req.params.id);
 
         return res.json(result);
     } catch (error) {
@@ -106,4 +125,5 @@ module.exports = {
     followUser,
     unfollowUser,
     getMyFollows,
+    whoAmI,
 };
