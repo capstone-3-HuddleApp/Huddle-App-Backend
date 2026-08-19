@@ -6,11 +6,35 @@ module.exports = {
   // If a call fails, catch hands the error to next(err) -> the error handler in
   // app.js. That stops one bad request from crashing the whole server.
 
+  async searchEvents(req, res, next) {
+    try {
+      let { query } = req.body;
+
+      if (!query || query.trim().length < 2) {
+        return res
+          .status(400)
+          .json({ error: "Search term must be at least 2 characters" });
+      }
+
+      query = query.trim().slice(0, 100);
+      query = query.replace(/[%_]/g, "\\$&");
+
+      const events = await eventService.searchEvents(query);
+      res.json(events);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   // READ ALL — GET /api/events
   async getAllEvents(req, res, next) {
     try {
       const { zipcode, longitude, latitude } = req.query;
-      const events = await eventService.getAllEventsService(zipcode, longitude, latitude);
+      const events = await eventService.getAllEventsService(
+        zipcode,
+        longitude,
+        latitude,
+      );
       res.json(events);
     } catch (err) {
       next(err);
@@ -28,7 +52,7 @@ module.exports = {
   },
 
   //READ Guest EVENTS — GET /api/events/guest/:userId
-  async getGuestEvents(req, res, next){
+  async getGuestEvents(req, res, next) {
     try {
       const events = await eventService.getMyEventsService(req.params.userId);
       res.json(events);
@@ -37,12 +61,14 @@ module.exports = {
     }
   },
 
-  async getEventsParticipating(req,res, nexr){
-    try{
-      const events = await eventService.getEventsParticipatingService(req.user.id);
-      res.json(events)
-    } catch(err){
-      next(err)
+  async getEventsParticipating(req, res, nexr) {
+    try {
+      const events = await eventService.getEventsParticipatingService(
+        req.user.id,
+      );
+      res.json(events);
+    } catch (err) {
+      next(err);
     }
   },
 
@@ -138,15 +164,19 @@ module.exports = {
         });
       }
 
-      const event = await eventService.updateEventService(req.params.id, req.user.id, {
-        name,
-        description,
-        category,
-        time,
-        address,
-        zipcode,
-        facilities_id,
-      });
+      const event = await eventService.updateEventService(
+        req.params.id,
+        req.user.id,
+        {
+          name,
+          description,
+          category,
+          time,
+          address,
+          zipcode,
+          facilities_id,
+        },
+      );
 
       if (!event) {
         return res.status(404).json({ error: "Event not found" });
@@ -190,7 +220,10 @@ module.exports = {
   // DELETE — DELETE /api/events/:id
   async deleteEvent(req, res, next) {
     try {
-      const success = await eventService.deleteEventService(req.params.id, req.user.id);
+      const success = await eventService.deleteEventService(
+        req.params.id,
+        req.user.id,
+      );
 
       if (!success) {
         return res.status(404).json({ error: "Event not found" });
