@@ -41,6 +41,14 @@ const Event = db.define(
         is: /^\d{5}(-\d{4})?$/, // matches 12345 or 12345-6789
       },
     },
+    latitude: {
+      type: DataTypes.DECIMAL(10,8),
+      allowNull: true
+    },
+    longitude: {
+      type: DataTypes.DECIMAL(11,8),
+      allowNull: true
+    },
     creator_id: {
       type: DataTypes.UUID,
       allowNull: false,
