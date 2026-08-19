@@ -1,16 +1,36 @@
 const { Op } = require("sequelize");
-const { User, Event, EventParticipants } = require("../models");
+const { User, Event, EventParticipants, db } = require("../models");
+const facilitiesService = require("../services/facilities.service");
 
 module.exports = {
   // READ ALL EVENTS — Get all events, optionally filtered by zipcode
-  async getAllEventsService(zipcode) {
+  async getAllEventsService(zipcode, latitude, longitude) {
     const where = {};
     if (zipcode) where.zipcode = zipcode;
 
-    const events = await Event.findAll({
+    const options = {
       where,
-      order: [["createdAt", "DESC"]], // newest first
-    });
+      limit: latitude && longitude ? 90 : 30,
+    };
+
+    //no geolocation
+    if (!latitude || !latitude) {
+      return;
+    }
+    if (latitude && longitude) {
+      options.order = [
+        [
+          db.literal(
+            `ST_Distance(ST_Point(longitude, latitude), ST_Point(${longitude}, ${latitude})) ASC`,
+          ),
+          "ASC",
+        ],
+      ];
+    } else {
+      options.order = [["createdAt", "DESC"]];
+    }
+
+    const events = await Event.findAll(options);
     return events;
   },
 
@@ -24,15 +44,15 @@ module.exports = {
   },
 
   //READ EVENTS PARTICIPATING -  Get all the events a user is participating in
-  async getEventsParticipatingService(userId){
+  async getEventsParticipatingService(userId) {
     const events = await Event.findAll({
       include: {
-        association: 'participants',
-        where: {id: userId},
+        association: "participants",
+        where: { id: userId },
         attributes: [],
-        through: {attributes: []}
+        through: { attributes: [] },
       },
-      order: [['createdAt', 'DESC']]
+      order: [["createdAt", "DESC"]],
     });
     return events;
   },
@@ -49,10 +69,18 @@ module.exports = {
 
   // CREATE EVENT
   async createEventService(eventData, creatorId) {
+    // Fetch facility to get latitude/longitude
+    const facility = await facilitiesService.getFacilityById(
+      eventData.facilities_id,
+    );
+
     const event = await Event.create({
       ...eventData,
       creator_id: creatorId,
+      latitude: facility.latitude,
+      longitude: facility.longitude,
     });
+
     return event;
   },
 

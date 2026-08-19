@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
+const facilitiesController = require("../controllers/facilities.controller");
 
+router.post("/", facilitiesController.searchFacilities);
 //upon getting hit this endpoint fetches data from the facilities database
 router.post("/", async (req, res, next) => {
   console.log("hit");

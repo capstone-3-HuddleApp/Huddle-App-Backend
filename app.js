@@ -37,7 +37,7 @@ app.set('trust proxy', 1);
 const isProd = process.env.NODE_ENV === 'production';
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 5 * 60 * 1000, // 5 minutes
   limit: isProd ? 100 : 1000, // max requests per IP in that window
   standardHeaders: 'draft-7',
   legacyHeaders: false,
