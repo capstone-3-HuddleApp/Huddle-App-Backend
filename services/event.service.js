@@ -2,37 +2,63 @@ const { Op } = require("sequelize");
 const { User, Event, EventParticipants, db } = require("../models");
 const facilitiesService = require("../services/facilities.service");
 
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 module.exports = {
-  // READ ALL EVENTS — Get all events, optionally filtered by zipcode
-  async getAllEventsService(zipcode, latitude, longitude) {
-    const where = {};
-    if (zipcode) where.zipcode = zipcode;
 
-    const options = {
-      where,
-      limit: latitude && longitude ? 90 : 30,
-    };
+async getAllEventsService(zipcode, latitude, longitude) {
+  const where = {};
+  if (zipcode) where.zipcode = zipcode;
 
-    //no geolocation
-    if (!latitude || !latitude) {
-      return;
-    }
-    if (latitude && longitude) {
-      options.order = [
-        [
-          db.literal(
-            `ST_Distance(ST_Point(longitude, latitude), ST_Point(${longitude}, ${latitude})) ASC`,
-          ),
-          "ASC",
-        ],
-      ];
-    } else {
-      options.order = [["createdAt", "DESC"]];
-    }
+  const events = await Event.findAll({
+    where,
+    order: [["createdAt", "DESC"]],
+    limit: 100,
+  });
 
-    const events = await Event.findAll(options);
-    return events;
-  },
+  if (!latitude || !longitude) {
+    return events.slice(0, 30);
+  }
+
+  // Events with coordinates
+  const withCoords = events.filter(e => e.latitude && e.longitude);
+  const withDistance = withCoords.map(event => ({
+    ...event.dataValues,
+    distance_km: haversineDistance(
+      parseFloat(latitude),
+      parseFloat(longitude),
+      parseFloat(event.latitude),
+      parseFloat(event.longitude)
+    ).toFixed(2),
+  }));
+  console.log(withCoords)
+  console.log(withDistance)
+
+  // Events without coordinates
+  const noCoords = events.filter(e => !e.latitude || !e.longitude).map(e => ({
+    ...e.dataValues,
+    distance_km: null,
+  }));
+
+  console.log(noCoords)
+  // Sorted by distance, then add the null ones
+  return [
+    ...withDistance.sort((a, b) => a.distance_km - b.distance_km).slice(0, 30),
+    ...noCoords.slice(0, 30 - withDistance.length),
+  ];
+},
 
   // READ MY EVENTS — Get all events created by a specific user
   async getMyEventsService(userId) {

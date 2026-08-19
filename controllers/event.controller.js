@@ -9,8 +9,8 @@ module.exports = {
   // READ ALL — GET /api/events
   async getAllEvents(req, res, next) {
     try {
-      const { zipcode } = req.query;
-      const events = await eventService.getAllEventsService(zipcode);
+      const { zipcode, longitude, latitude } = req.query;
+      const events = await eventService.getAllEventsService(zipcode, longitude, latitude);
       res.json(events);
     } catch (err) {
       next(err);
