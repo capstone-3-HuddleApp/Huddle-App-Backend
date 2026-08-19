@@ -24,6 +24,7 @@ const {
   partialUpdateEvent,
   deleteEvent,
   getGuestEvents,
+  searchEvents,
 } = require('../controllers/event.controller');
 
 const router = express.Router();
@@ -54,6 +55,8 @@ router.patch('/:id', requireAuth, partialUpdateEvent);
  
 // DELETE — DELETE /api/events/:id
 router.delete('/:id', requireAuth, deleteEvent);
+
+router.post('/search', requireAuth, searchEvents);
  
 module.exports = router;
  
