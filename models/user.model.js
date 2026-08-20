@@ -42,6 +42,16 @@ const User = db.define('user', {
     unique: true,
     validate: { len: [3, 20] }, // must be 3–20 characters
   },
+  // Remembers which name the user wants other users to see publicly.
+  publicNameChoice: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: "displayName",
+    field: "public_name_choice",
+    validate: {
+      isIn: [["displayName", "username"]],
+    },
+  },
   // Required for local signup — it's how you log in. For Auth0 users it comes
   // from a custom claim, which is only present if the Post-Login Action is set
   // up, so the column itself stays nullable.

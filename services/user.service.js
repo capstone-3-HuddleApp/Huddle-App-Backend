@@ -2,7 +2,7 @@ const { Op } = require("sequelize");
 const { User, UserFollows } = require("../models");
 
 module.exports = {
-    async updateMyProfileService(userId, name, username) {
+    async updateMyProfileService(userId, name, username, publicNameChoice) {
         const usernameOwner = await User.findOne({
             where: {
                 username,
@@ -20,7 +20,7 @@ module.exports = {
             throw new Error("User not found");
         }
 
-        await currentUser.update({ name, username });
+        await currentUser.update({ name, username, publicNameChoice });
 
         return currentUser;
     },
@@ -64,12 +64,12 @@ module.exports = {
             include: [
                 {
                     association: "followers",
-                    attributes: ["id", "name", "username"],
+                    attributes: ["id", "name", "username", "publicNameChoice"],
                     through: {attributes: []},
                 },
                 {
                     association: "following",
-                    attributes: ["id", "name", "username"],
+                    attributes: ["id", "name", "username", "publicNameChoice"],
                     through: {attributes: []},
                 },
             ],
