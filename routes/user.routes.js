@@ -27,6 +27,9 @@ router.get('/:userId/events', eventController.getUserAttendEvents);
 //Add user to event 
 router.post('/:userId/events', eventController.addUserToEvent);
 
+// Removes the authenticated user from an event and its participant chat list.
+router.delete('/:userId/events/:eventId', requireAuth, eventController.removeUserFromEvent);
+
 
 
 

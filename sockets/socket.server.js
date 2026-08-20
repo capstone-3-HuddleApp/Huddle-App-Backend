@@ -24,10 +24,13 @@ module.exports = (server) => {
       console.log("Recieved send_event_message:", data)
       console.log("Emmiting to room", `event_${data.event_id}`)
 
+      // Broadcast the saved message using the same shape returned by the REST API.
       io.to(`event_${data.event_id}`).emit("receive_event_message", {
+        id: data.id,
+        event_id: data.event_id,
         sender: data.sender,
         user_id: data.user_id,
-        message: data.content,
+        content: data.content,
         createdAt: data.createdAt,
       });
 

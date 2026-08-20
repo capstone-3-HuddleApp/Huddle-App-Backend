@@ -5,6 +5,7 @@ async function updateMyProfile(req, res, next) {
     try {
         const name = req.body.name?.trim();
         const username = req.body.username?.trim();
+        const publicNameChoice = req.body.publicNameChoice;
 
         if (!name || !username) {
             return res.status(400).json({
@@ -18,10 +19,17 @@ async function updateMyProfile(req, res, next) {
             });
         }
 
+        if (!["displayName", "username"].includes(publicNameChoice)) {
+            return res.status(400).json({
+                error: "Public name choice must be displayName or username",
+            });
+        }
+
         const updatedUser = await userService.updateMyProfileService(
             req.user.id,
             name,
             username,
+            publicNameChoice,
         );
 
         return res.json(updatedUser);

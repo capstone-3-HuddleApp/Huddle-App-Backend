@@ -270,6 +270,21 @@ module.exports = {
     }
   },
 
+  async removeUserFromEvent(req, res, next) {
+    try {
+      const { userId, eventId } = req.params;
+
+      if (req.user.id !== userId) {
+        return res.status(403).json({ error: "You can only leave an event for yourself" });
+      }
+
+      await eventService.removeUserFromEvent(userId, eventId);
+      return res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  },
+
   /**
    * $$$-Funtion Creation: 08/08/2026, [Md Shamin Ahsan Anaph]
    * $$$-Most Recent Change: 08/08/2026, [Md Shamin Ahsan Anaph]

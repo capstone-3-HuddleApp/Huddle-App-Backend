@@ -162,8 +162,10 @@ module.exports = {
       "description",
       "category",
       "time",
+      "location",
       "address",
       "zipcode",
+      "maxParticipants",
       "facilities_id",
     ];
     const updates = {};
@@ -172,6 +174,18 @@ module.exports = {
       if (field in requestBody) {
         updates[field] = requestBody[field];
       }
+    }
+
+    // Keep the event's map coordinates synchronized when its facility changes.
+    if (
+      requestBody.facilities_id &&
+      requestBody.facilities_id !== event.facilities_id
+    ) {
+      const facility = await facilitiesService.getFacilityById(
+        requestBody.facilities_id,
+      );
+      updates.latitude = facility.latitude;
+      updates.longitude = facility.longitude;
     }
 
     await event.update(updates);
@@ -230,6 +244,25 @@ module.exports = {
     // (addParticipants is a auto generated sequalize fucntion
     // created by using the as: participants in belongs to many)
     return await event.addParticipants(user);
+  },
+
+  async removeUserFromEvent(userId, eventId) {
+    const user = await User.findByPk(userId);
+    const event = await Event.findByPk(eventId);
+
+    if (!user || !event) {
+      throw new Error("User or Event not found");
+    }
+
+    const removedCount = await EventParticipants.destroy({
+      where: { user_id: userId, event_id: eventId },
+    });
+
+    if (removedCount === 0) {
+      throw new Error("User is not participating in this event");
+    }
+
+    return true;
   },
 
   async getUserAttendEvents(userId) {
